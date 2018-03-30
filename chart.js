@@ -32,8 +32,8 @@ getChartJsOptions = ({ labels, chartData, threshold, title }) => {
 		// 		data: tempData,
 		// 		backgroundColor: "red"
 		// 		// color: function(context) {
-		// 		// 	var index = context.dataIndex;
-		// 		// 	var value = context.dataset.data[index];
+		// 		// 	const index = context.dataIndex;
+		// 		// 	const value = context.dataset.data[index];
 
 		// 		// 	console.log(context);
 

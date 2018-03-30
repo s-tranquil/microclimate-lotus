@@ -1,20 +1,13 @@
-var SlackBot = require('slackbots');
 
-var promise = require('es6-promise');
+const schedule = require('node-schedule');
+const promise = require('es6-promise');
 promise.polyfill();
 
-var schedule = require('node-schedule');
-
-var chart = require('./chart');
-var api = require('./api');
-
-var bot = new SlackBot({
-    token: '',
-    name: 'microclimate-bot'
-});
+const chart = require('./chart');
+const api = require('./api');
+const bot = require('./bot').getBot();
 
 const postMessage = (message) => bot.postMessageToChannel('microclimate', message);
-
 
 bot.on('start', function() {
 	api.getLastN(20).then((json) => {

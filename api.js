@@ -1,4 +1,4 @@
-var promise = require('es6-promise');
+const promise = require('es6-promise');
 require('isomorphic-fetch');
 
 promise.polyfill();
