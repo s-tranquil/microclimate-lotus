@@ -1,11 +1,10 @@
 const SlackBot = require('slackbots');
-var fs = require('fs');
+
+const tokenReader = require('./token-reader');
 
 module.exports = {
     getBot: () => {
-        const token = JSON.parse(fs.readFileSync('./token.json', 'utf8')).token;
-        console.log(token);
-
+        const token = tokenReader.getToken();
         return new SlackBot({
             token,
             name: 'microclimate-bot'

@@ -80,13 +80,9 @@ module.exports = {
 				// write to a file
 				const fileName = `./temp/chart-${new Date().getTime()}.png`;
 
-				chartNode.writeImageToFile('image/png', fileName);
-				return fileName;
-			})
-			.then((fileName) => {
-				console.log(fileName);
-				// chart is now written to the file path
-				// ./testimage.png
+				return chartNode
+					.writeImageToFile('image/png', fileName)
+					.then(() => fileName);
 			});
 	}
 };

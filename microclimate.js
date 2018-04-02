@@ -1,74 +1,53 @@
 
 const schedule = require('node-schedule');
+var fs = require('fs');
 const promise = require('es6-promise');
 promise.polyfill();
 
 const chart = require('./chart');
 const api = require('./api');
+const uploader = require('./uploader');
 const bot = require('./bot').getBot();
 
-const postMessage = (message) => bot.postMessageToChannel('microclimate', message);
+const postMessage = (message, params) => bot.postMessageToChannel('microclimate', message, params);
 
-bot.on('start', function() {
-	api.getLastN(20).then((json) => {
+const TEMP_THRESHOLD = 26;
+
+const uploadTemperatureChart = () => 
+	api.getLastN(10).then((json) => {
 		const labels = json.map(x => x.timestamp.slice(11, 19));
 		const chartData = json.map(x => x.temperature);	
-		chart.draw({
-			labels,
-			chartData,
-			threshold: 24.45,
-			title: 'Температура, °C'
+		const title = 'Температура, °C';
+
+		chart
+			.draw({
+				labels,
+				chartData,
+				threshold: TEMP_THRESHOLD,
+				title
+			})
+			.then(uploader.uploadImage);
+	});
+
+bot.on('start', function() {
+	
+	schedule.scheduleJob('*/15 * * * *', () => {
+		api.getLatest().then(json => {
+			if(json.temperature >= TEMP_THRESHOLD) {
+				uploadTemperatureChart();
+			}
 		});
 	});
-	
-	
-	// schedule.scheduleJob('*/5 * * * *', () => {
-	// 	fetch('http://10.20.3.49:85/api/CO2/latest')
-	// 		.then(response => 
-	// 			response.json().then(json => {
-	// 				const temp = json.temperature;
-	// 				const co2 = json.cO2ppm;
-					
-	// 				if(temp < 26 && co2 < 650) {
-	// 					return;
-	// 				}
-					
-	// 				let message = ' ';
-					
-	// 				//let message = `\n *${json.timestamp.slice(11, 19)}*`;
-					
-	// 				if (temp >= 26) {
-	// 					message += `\n *Температура: ${temp} °C*`;
-	// 				} else {
-	// 					message += `\n Температура: ${temp} °C`;
-	// 				}
-					
-	// 				if (co2 >= 650) {
-	// 					message += `\n *Влажность: ${json.humidity} %*`;
-	// 				} else {
-	// 					message += `\n Влажность: ${json.humidity} %`;
-	// 				}
-					
-	// 				message += `\n CO2: ${co2} ppm`;
-					
-	// 				postMessage(message);
-	// 			})
-	// 		);
-	// });
     
 });
 
 bot.on('message', function(data) {
-    // all ingoing events https://api.slack.com/rtm
     console.log("_______________________________________");
 	console.log(data);
-	// if(data.content && data.content.includes('@microclimate-bot')) {
-	// 	if(data.content.includes('latest')) {
-	// 		fetch('http://10.20.3.49:85/api/CO2/latest')
-	// 			.then(response => {
-	// 				response.json().then(postMessage);
-	// 			});
-	// 	}
-	// }
-	
+
+	if(data.content && data.content.includes('@microclimate-bot')) {
+		if(data.content.includes('temp')) {
+			uploadTemperatureChart();
+		}
+	}
 });
