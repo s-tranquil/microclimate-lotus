@@ -11,7 +11,7 @@ module.exports = {
             channels: 'microclimate',
             token: token,
             file: fs.createReadStream(path),
-            filename: path.split("/")[1],
+            filename: path.split("/")[2],
             filetype: "png"
         }
 

@@ -1,13 +1,26 @@
 const ChartjsNode = require('chartjs-node');
+const Chart = require('chart.js');
 
+Chart.plugins.register({
+	beforeDraw: function(chartInstance) {
+	  var ctx = chartInstance.chart.ctx;
+	  ctx.fillStyle = "white";
+	  ctx.fillRect(0, 0, chartInstance.chart.width, chartInstance.chart.height);
+	}
+});
 
-getChartJsOptions = ({ labels, chartData, threshold, title }) => {
+getChartJsOptions = ({ labels, chartData, threshold, thresholdBad, title }) => {
 	console.log(chartData);
 
-	const getColor = value => 
-		value >= threshold 
-			? "red" 
-			: "green";
+	const getColor = value => {
+		if (value >= thresholdBad) {
+			return "red";
+		}
+		if (value >= threshold) {
+			return "yellow";
+		}
+		return "green";
+	}
 
 	const getColors = chartData => 
 		chartData.map(getColor);
@@ -25,39 +38,35 @@ getChartJsOptions = ({ labels, chartData, threshold, title }) => {
 				data: chartData
 			}]
 		},
-		// data: {
-		// 	//labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-		// 	datasets: [{
-		// 		label: 'Температура, °C',
-		// 		data: tempData,
-		// 		backgroundColor: "red"
-		// 		// color: function(context) {
-		// 		// 	const index = context.dataIndex;
-		// 		// 	const value = context.dataset.data[index];
-
-		// 		// 	console.log(context);
-
-		// 		// 	return value > 26 ? "red" : "blue";
-		// 		// }
-		// 	}]
-		// },
 		options: {
 			scales: {
 				yAxes: [{
 					ticks: {
-						beginAtZero:false
+						suggestedMin: Math.min(...chartData) - 0.2,
+						beginAtZero:false,
+						fontSize: 30
+					}
+				}],
+				xAxes: [{
+					ticks: {
+						fontSize: 30
 					}
 				}]
+			},
+			layout: {
+				padding: {
+					left: 30
+				}
 			}
 		}
 	};
 }
 
 module.exports = {
-	draw: function ({ labels, chartData, threshold, title }) {
-		const chartNode = new ChartjsNode(1000, 600);
+	draw: function ({ labels, chartData, threshold, thresholdBad, title }) {
+		const chartNode = new ChartjsNode(600, 400);
 
-		const chartOptions = getChartJsOptions({ labels, chartData, threshold, title });
+		const chartOptions = getChartJsOptions({ labels, chartData, threshold, thresholdBad, title });
 
 		return chartNode.drawChart(chartOptions)
 			.then(() => {

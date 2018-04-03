@@ -12,11 +12,14 @@ const bot = require('./bot').getBot();
 const postMessage = (message, params) => bot.postMessageToChannel('microclimate', message, params);
 
 const TEMP_THRESHOLD = 26;
+const TEMP_THRESHOLD_BAD = 28;
 
 const uploadTemperatureChart = () => 
-	api.getLastN(10).then((json) => {
-		const labels = json.map(x => x.timestamp.slice(11, 19));
-		const chartData = json.map(x => x.temperature);	
+	api.getLastN(33).then((json) => {
+		const data = json.filter((x, i) => i % 8 === 0);
+
+		const labels = data.map(x => x.timestamp.slice(11, 16));
+		const chartData = data.map(x => x.temperature);	
 		const title = 'Температура, °C';
 
 		chart
@@ -24,6 +27,7 @@ const uploadTemperatureChart = () =>
 				labels,
 				chartData,
 				threshold: TEMP_THRESHOLD,
+				thresholdBad: TEMP_THRESHOLD_BAD,
 				title
 			})
 			.then(uploader.uploadImage);
@@ -31,7 +35,7 @@ const uploadTemperatureChart = () =>
 
 bot.on('start', function() {
 	
-	schedule.scheduleJob('*/15 * * * *', () => {
+	schedule.scheduleJob('*/20 * * * *', () => {
 		api.getLatest().then(json => {
 			if(json.temperature >= TEMP_THRESHOLD) {
 				uploadTemperatureChart();
