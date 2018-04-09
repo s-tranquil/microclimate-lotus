@@ -37,7 +37,16 @@ bot.on('start', function() {
 	
 	schedule.scheduleJob('*/20 * * * *', () => {
 		api.getLatest().then(json => {
-			if(json.temperature >= TEMP_THRESHOLD) {
+			if(json.temperature >= TEMP_THRESHOLD_BAD) {
+				uploadTemperatureChart();
+			}
+		});
+	});
+
+	schedule.scheduleJob('0 * * * *', () => {
+		api.getLatest().then(json => {
+			const t = json.temperature;
+			if(t >= TEMP_THRESHOLD && t < TEMP_THRESHOLD_BAD) {
 				uploadTemperatureChart();
 			}
 		});
